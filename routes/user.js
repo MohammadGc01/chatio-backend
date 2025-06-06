@@ -1,4 +1,4 @@
-const { register_controller, login_controller, finduser, addfriend, getfriends } = require('../controller/user')
+const { register_controller, login_controller, finduser, addfriend } = require('../controller/user')
 
 const Router = require('express').Router()
 
@@ -18,8 +18,5 @@ Router.post('/addfriend', async (req,res) => {
     await addfriend(req,res)
 })
 
-Router.get('/getfriend/:requester_id', async (req ,res) => {
-    await getfriends(req,res)
-})
 
 module.exports = Router

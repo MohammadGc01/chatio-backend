@@ -90,51 +90,53 @@ async function finduser(req,res) {
   })
 }
 
-async function addfriend(req,res) {
-  const {requester_id , receiver_id  } = req.body
-
-  if(!requester_id && !receiver_id){
-  return  res.json({
-      success : false,
-      message : "invelid params"
-    })
+async function addfriend(requester_id, receiver_id) {
+  if (!requester_id || !receiver_id) {
+    return Promise.reject({
+      success: false,
+      message: "Invalid params"
+    });
   }
-  const sql = "INSERT INTO friends (requester_id, receiver_id) VALUES (?,?)"
-  db.query(sql , [requester_id , receiver_id], (err,result) => {
-        if(err){
-          res.json(err)
-        }
 
-        res.json({
-          message : "user added to friend"
-        })
-  })
+  const sql = "INSERT INTO friends (requester_id, receiver_id) VALUES (?, ?)";
+  return new Promise((resolve, reject) => {
+    db.query(sql, [requester_id, receiver_id], (err, result) => {
+      if (err) {
+        return reject(err); // ⛔ خطاها reject می‌شن
+      }
+      resolve({
+        success: true,
+        message: "New friend added",
+        result
+      }); // ✅ موفقیت resolve می‌شه
+    });
+  });
 }
 
-async function getfriends(req , res) {
-  const {requester_id  } = req.params
-  const sql = `SELECT DISTINCT  u.id, u.username FROM friends f JOIN users u ON (
-   (f.requester_id = ? AND u.id = f.receiver_id) OR
-   (f.receiver_id = ? AND u.id = f.requester_id) 
 
-  )`
+async function getfriends(requester_id) {
+  const sql = `
+    SELECT DISTINCT u.id, u.username 
+    FROM friends f 
+    JOIN users u ON (
+      (f.requester_id = ? AND u.id = f.receiver_id) OR
+      (f.receiver_id = ? AND u.id = f.requester_id)
+    )
+  `;
 
-  db.query(sql, [requester_id , requester_id] , (err,result) => {
-    if(err){
-      res.json(err)
-    }
-    res.json(result);
-    
-  })
-
-
+  return new Promise((resolve, reject) => {
+    db.query(sql, [requester_id, requester_id], (err, result) => {
+      if (err) return reject(err); // ⛔
+      resolve(result); // ✅
+    });
+  });
 }
+
 
 module.exports = {
     register_controller,
     login_controller,
     finduser,
     addfriend,
-    getfriends
-
+    getfriends,
 }
